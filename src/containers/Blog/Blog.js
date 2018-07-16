@@ -1,65 +1,47 @@
 import React, { Component } from 'react';
-import axios from 'axios';
-
-import Post from '../../components/Post/Post';
-import FullPost from '../../components/FullPost/FullPost';
-import NewPost from '../../components/NewPost/NewPost';
+import { Route, NavLink, Switch } from 'react-router-dom';
 import './Blog.css';
 
+import Posts from './Posts/Posts';
+// import NewPost from './NewPost/NewPost';
+import asyncComponent from '../../hoc/asyncComponent/asyncComponent';
+
+const AsyncNewPost = asyncComponent(() => {
+  return import('./NewPost/NewPost');
+});
+
 class Blog extends Component {
-
-    state = {
-        posts: [],
-        selectedPostId: null,
-        error: false
-    }
-
-    componentDidMount() {
-        axios.get('https://jsonplaceholder.typicode.com/postssss').then(res => {
-            const posts = res.data.slice(0, 4);
-            const updatedPosts = posts.map(post => {
-                return {
-                    ...post,
-                    author: 'Arpit'
-                }
-            });
-            this.setState({ posts: updatedPosts });
-        }).catch(error => {
-            this.setState({ error: true });
-        });
-    }
-
-    postSelectedHandler = (id) => {
-        this.setState({ selectedPostId: id });
-    }
-
-    render() {
-        let posts = "Something went wrongs!!!";
-        if (!this.state.error) {
-            posts = this.state.posts.map(post => {
-                return <Post
-                    key={post.id}
-                    title={post.title}
-                    author={post.author}
-                    clicked={this.postSelectedHandler.bind(this, post.id)}
-                />
-            });
-        }
-
-        return (
-            <div>
-                <section className="Posts">
-                    {posts}
-                </section>
-                <section>
-                    <FullPost id={this.state.selectedPostId} />
-                </section>
-                <section>
-                    <NewPost />
-                </section>
-            </div>
-        );
-    }
+  render() {
+    return (
+      <div className="Blog">
+        <header>
+          <nav>
+            <ul>
+              <li><NavLink to="/posts/" exact>Home</NavLink></li>
+              <li>
+                <NavLink
+                  to={{
+                    // Pathname below will always create absolute path irrestpective of the presence of the / 
+                    // before the path name if you want a relative path use this.props.match.url + '/new-post'
+                    pathname: "/new-post",
+                    hash: '#submit',
+                    search: '?quick-submit=true'
+                  }}
+                  activeClassName="active">New Post</NavLink>
+              </li>
+            </ul>
+          </nav>
+        </header>
+        <Switch>
+          <Route path='/new-post' component={AsyncNewPost} />
+          <Route path='/posts' component={Posts} />
+          <Route render={() => <h1>Not Found</h1>} />
+          {/* <Redirect from="/" to="/posts" /> */}
+          {/* <Route path='/' component={Posts} /> */}
+        </Switch>
+      </div>
+    );
+  }
 }
 
 export default Blog;
